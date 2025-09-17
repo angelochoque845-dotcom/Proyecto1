@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IDS - ML</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Intrusion Detection System (IDS-ML)</h1>
+        <form action="/predict" method="post">
+            <input type="text" name="data" placeholder="Ej: 192.168.1.50">
+            <button type="submit">Detectar Intrusión</button>
+        </form>
+    </div>
+</body>
+</html>
+
