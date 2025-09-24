@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Resultado IDS</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Resultado de Predicción</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Resultado de la detección</h1>
-        <p>Predicción: {{ prediction }}</p>
-        <a href="/">Volver</a>
-    </div>
+    <h1>📊 Resultado del IDS</h1>
+    <p>{{ prediction }}</p>
+
+    <a href="/">⬅️ Volver</a>
 </body>
 </html>
