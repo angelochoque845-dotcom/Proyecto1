@@ -49,7 +49,7 @@ def predict_intrusion(data: str):
 
         # Predicción
         pred = model.predict(df)[0]
-        return f"🚨 Predicción: {pred}"
+        return f" Predicción: {pred}"
 
     except Exception as e:
         return f"❌ Error procesando datos: {e}"
