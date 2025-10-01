@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Resultado de Predicción</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>Resultado de Predicción</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1> Resultado del IDS</h1>
-    <p>{{ prediction }}</p>
+  <div class="container">
+    <h1>Resultado de la Predicción de Intrusión</h1>
 
-    <a href="/">⬅️ Volver</a>
+    {% if prediction == 'normal' %}
+      <p class="prediction normal"><strong>Predicción:</strong> {{ prediction }}</p>
+    {% else %}
+      <p class="prediction attack"><strong>Predicción:</strong> {{ prediction }}</p>
+    {% endif %}
+
+    <a href="/" class="btn-back">← Volver</a>
+  </div>
 </body>
 </html>

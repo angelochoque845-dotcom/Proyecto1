@@ -1,27 +1,51 @@
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+import os
+import joblib
 
-# === 1. Definir nombres de las columnas ===
-columns = [
-    "duration","protocol_type","service","flag","src_bytes","dst_bytes",
-    "land","wrong_fragment","urgent","hot","num_failed_logins","logged_in",
-    "num_compromised","root_shell","su_attempted","num_root","num_file_creations",
-    "num_shells","num_access_files","num_outbound_cmds","is_host_login","is_guest_login",
-    "count","srv_count","serror_rate","srv_serror_rate","rerror_rate","srv_rerror_rate",
-    "same_srv_rate","diff_srv_rate","srv_diff_host_rate","dst_host_count",
-    "dst_host_srv_count","dst_host_same_srv_rate","dst_host_diff_srv_rate",
-    "dst_host_same_src_port_rate","dst_host_srv_diff_host_rate","dst_host_serror_rate",
-    "dst_host_srv_serror_rate","dst_host_rerror_rate","dst_host_srv_rerror_rate",
-    "label","difficulty"
-]
+# Rutas
+RAW_PATH = "data/raw/"
+PROCESSED_PATH = "data/processed/nsl_kdd.csv"
+LABEL_ENCODER_PATH = "data/processed/label_encoder.pkl"
 
-def convertir_txt_a_csv(input_file, output_file):
-    print(f"📂 Convirtiendo {input_file} ...")
-    df = pd.read_csv(input_file, names=columns)
-    df.to_csv(output_file, index=False)
-    print(f"✅ Guardado en {output_file}")
+# Crear carpeta processed si no existe
+os.makedirs(os.path.dirname(PROCESSED_PATH), exist_ok=True)
 
-if __name__ == "__main__":
-    # Convertir dataset de entrenamiento
-    convertir_txt_a_csv("data/KDDTrain+.txt", "data/KDDTrain+.csv")
-    # Convertir dataset de prueba
-    convertir_txt_a_csv("data/KDDTest+.txt", "data/KDDTest+.csv")
+# Archivos a combinar
+archivos = ["KDDTrain+.txt", "KDDTest+.txt"]
+dfs = []
+
+for archivo in archivos:
+    ruta = os.path.join(RAW_PATH, archivo)
+    if os.path.exists(ruta):
+        df = pd.read_csv(ruta, header=None)
+        dfs.append(df)
+        print(f"✅ Cargado {archivo}")
+    else:
+        print(f"⚠️ No se encontró {archivo}")
+
+# Combinar todos los archivos
+df_total = pd.concat(dfs, ignore_index=True)
+print("✅ Archivos combinados")
+
+# Asignar nombres de columnas: f0, f1, ..., f41, label
+num_cols = df_total.shape[1]
+columnas = [f"f{i}" for i in range(num_cols-1)] + ["label"]
+df_total.columns = columnas
+
+# Codificar columnas categóricas (menos la última, que será la label)
+for col in df_total.columns[:-1]:
+    if df_total[col].dtype == 'object':
+        le = LabelEncoder()
+        df_total[col] = le.fit_transform(df_total[col])
+        print(f"Columna '{col}' codificada.")
+
+# Codificar columna label y guardar LabelEncoder
+le_label = LabelEncoder()
+df_total["label"] = le_label.fit_transform(df_total["label"])
+joblib.dump(le_label, LABEL_ENCODER_PATH)
+print(f"✅ LabelEncoder de 'label' guardado en {LABEL_ENCODER_PATH}")
+
+# Guardar CSV procesado
+df_total.to_csv(PROCESSED_PATH, index=False)
+print(f"✅ Dataset procesado y guardado en {PROCESSED_PATH}")

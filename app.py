@@ -1,11 +1,34 @@
 from flask import Flask, render_template, request
+import pandas as pd
 from ml_engine import predict_intrusion
 
 app = Flask(__name__)
 
+# Carga dataset procesado
+df = pd.read_csv("data/processed/nsl_kdd.csv")
+
+# Asegúrate de que la columna 'label' exista
+if 'label' not in df.columns:
+    raise ValueError("La columna 'label' no existe en nsl_kdd.csv")
+
+# Filtra ejemplos
+df_normal = df[df['label'] == 'normal']
+df_attack = df[df['label'] != 'normal']
+
 @app.route("/")
 def home():
-    return render_template("index.html")
+    # Función segura para convertir DataFrame a lista de strings
+    def df_to_list_of_str(df_subset):
+        if df_subset.empty:
+            return []
+        # Asegurarse de que 'label' se elimine solo si existe
+        cols = [c for c in df_subset.columns if c != 'label']
+        return df_subset[cols].astype(str).apply(lambda row: ','.join(row), axis=1).tolist()
+
+    normal_examples = df_to_list_of_str(df_normal)[:5]
+    attack_examples = df_to_list_of_str(df_attack)[:5]
+
+    return render_template("index.html", normal_examples=normal_examples, attack_examples=attack_examples)
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -15,11 +38,3 @@ def predict():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-#0,tcp,http,SF,181,5450,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,9,9,0.00,0.00,0.00,0.00,1.00,0.00,0.00,9,9,1.00,0.00,0.11,0.00,0.00,0.00,0.00,0.00,0.00
-#0,tcp,http,SF,239,486,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,19,19,0.00,0.00,0.00,0.00,1.00,0.00,0.00,19,19,1.00,0.00,0.05,0.00,0.00,0.00,0.00,0.00,0.00
-#0,tcp,ftp_data,SF,235,1337,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,8,8,0.00,0.00,0.00,0.00,1.00,0.00,0.00,8,8,1.00,0.00,0.12,0.00,0.00,0.00,0.00,0.00,0.00
-#0,tcp,http,SF,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0,0,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00
-#0,udp,other,SF,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0,0,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00
-#0,tcp,ftp,S0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0,0,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00
-#0,tcp,http,REJ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0,0,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00

@@ -1,55 +1,25 @@
+# ml_engine.py
 import pandas as pd
 import joblib
 
-# === 1. Cargar el modelo entrenado ===
-try:
-    model = joblib.load("data/ids_model.pkl")
-    print("✅ Modelo cargado correctamente.")
-except Exception as e:
-    print("⚠️ No se pudo cargar el modelo:", e)
-    model = None
+# Cargar modelo y LabelEncoder
+model = joblib.load("data/trained_model.pkl")
+le_label = joblib.load("data/processed/label_encoder.pkl")
+print("✅ Modelo y LabelEncoder cargados correctamente.")
 
-# === 2. Función para predecir intrusiones ===
-def predict_intrusion(data: str):
+def predict_intrusion(record: str):
     """
-    Recibe una cadena con datos (ej: '0,tcp,http,SF,181,5450,...')
-    Devuelve la predicción del modelo (normal o ataque).
+    Recibe un registro de red como string separado por comas.
+    Devuelve el nombre del ataque (normal, smurf, neptune, etc.)
     """
-    if model is None:
-        return "⚠️ Modelo no cargado"
-
     try:
-        # Convertir la entrada en una lista
-        values = data.split(",")
-        
-        # Cargar nombres de columnas desde el dataset original
-        columns = [
-            "duration","protocol_type","service","flag","src_bytes","dst_bytes",
-            "land","wrong_fragment","urgent","hot","num_failed_logins","logged_in",
-            "num_compromised","root_shell","su_attempted","num_root","num_file_creations",
-            "num_shells","num_access_files","num_outbound_cmds","is_host_login","is_guest_login",
-            "count","srv_count","serror_rate","srv_serror_rate","rerror_rate","srv_rerror_rate",
-            "same_srv_rate","diff_srv_rate","srv_diff_host_rate","dst_host_count",
-            "dst_host_srv_count","dst_host_same_srv_rate","dst_host_diff_srv_rate",
-            "dst_host_same_src_port_rate","dst_host_srv_diff_host_rate","dst_host_serror_rate",
-            "dst_host_srv_serror_rate","dst_host_rerror_rate","dst_host_srv_rerror_rate"
-        ]
-        
-        # Crear DataFrame con un solo registro
-        df = pd.DataFrame([values], columns=columns)
-
-        # One-hot encoding (para coincidir con entrenamiento)
-        df = pd.get_dummies(df, columns=["protocol_type", "service", "flag"])
-
-        # Alinear columnas con el modelo entrenado
-        missing_cols = set(model.feature_names_in_) - set(df.columns)
-        for c in missing_cols:
-            df[c] = 0  # columnas faltantes con 0
-        df = df[model.feature_names_in_]
-
-        # Predicción
-        pred = model.predict(df)[0]
-        return f" Predicción: {pred}"
-
+        features = record.strip().split(",")
+        if len(features) != len(model.feature_names_in_):
+            raise ValueError(f"Se esperaban {len(model.feature_names_in_)} features, recibidas {len(features)}")
+        df = pd.DataFrame([features], columns=model.feature_names_in_)
+        pred_num = model.predict(df)[0]
+        pred_label = le_label.inverse_transform([pred_num])[0]
+        return pred_label
     except Exception as e:
-        return f"❌ Error procesando datos: {e}"
+        print("Error en predicción:", e)
+        return None

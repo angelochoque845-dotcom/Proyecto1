@@ -1,18 +1,26 @@
-from peewee import *
-import datetime
+# models.py
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+import joblib
 import os
 
-if not os.path.exists("data"):
-    os.makedirs("data")
-    
-db = SqliteDatabase("data/ids.db")
+# Cargar dataset codificado
+df = pd.read_csv("data/processed/nsl_kdd_encoded.csv")
 
-class BaseModel(Model):
-    class Meta:
-        database = db
+# Separar features y target
+X = df.drop(columns=["label", "label_num"])
+y = df["label_num"]
 
-class Alerta(BaseModel):
-    tipo = CharField()
-    host = CharField()
-    severidad = IntegerField()
-    timestamp = DateTimeField(default=datetime.datetime.now)
+# Entrenar RandomForest
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X, y)
+
+# Guardar modelo entrenado
+os.makedirs("data", exist_ok=True)
+joblib.dump(model, "data/trained_model.pkl")
+print("✅ Modelo entrenado y guardado")
+
+# Guardar LabelEncoder (solo si no existe)
+if not os.path.exists("data/processed/label_encoder.pkl"):
+    le = joblib.load("data/processed/label_encoder.pkl")
+    joblib.dump(le, "data/processed/label_encoder.pkl")

@@ -1,18 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>IDS con Machine Learning</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>IDS ML - Predicción de Intrusión</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1> IDS basado en Machine Learning</h1>
-    <p>Introduce un registro de tráfico de red (formato CSV) para analizar si es <b>normal</b> o <b>ataque</b>.</p>
+  <div class="container">
+    <h1>IDS basado en Machine Learning</h1>
+    <p>Introduce un registro de tráfico de red para predecir si es normal o un ataque.</p>
 
     <form action="/predict" method="post">
-        <textarea name="data" rows="4" cols="100" placeholder="Ejemplo: 0,tcp,http,SF,181,5450,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,9,9,0.00,0.00,0.00,0.00,1.00,0.00,0.00,9,9,1.00,0.00,0.11,0.00,0.00,0.00,0.00,0.00,0.00"></textarea>
-        <br><br>
-        <button type="submit">🔍 Analizar</button>
+      <textarea name="data" rows="4" placeholder="Pega aquí tu registro de red"></textarea>
+      <button type="submit">Predecir</button>
     </form>
+
+    <h2>Ejemplos de tráfico normal</h2>
+    <ul>
+      {% for example in normal_examples %}
+        <li>
+          <code>{{ example }}</code>
+          <button class="copy-btn" data-text="{{ example }}">Copiar</button>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <h2>Ejemplos de ataques</h2>
+    <ul>
+      {% for example in attack_examples %}
+        <li>
+          <code>{{ example }}</code>
+          <button class="copy-btn" data-text="{{ example }}">Copiar</button>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.text).then(() => {
+          alert('Registro copiado al portapapeles!');
+        });
+      });
+    });
+  </script>
 </body>
 </html>
