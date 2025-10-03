@@ -1,9 +1,23 @@
-# Ignorar entorno virtual
+# Entorno virtual
 venv/
 
-# Ignorar archivos temporales de Python
+# Datos y modelos pesados
+data/
+*.pkl
+
+# Archivos compilados de Python
 __pycache__/
 *.pyc
+*.pyo
 
-# Ignorar modelos grandes
-data/trained_model.pkl
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+venv/
+data/
+*.pkl
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
